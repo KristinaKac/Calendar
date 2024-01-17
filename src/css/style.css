@@ -34,3 +34,15 @@ body {
     border-radius: 50%;
     border: none;
 }
+.select_day {
+    background-color: blue;
+}
+.mediate_day {
+    background-color: rgb(129, 129, 255);
+}
+.invalid_day {
+    background-color: rgb(138, 138, 138);
+}
+.hover_day {
+    background-color: rgb(129, 129, 255);
+}

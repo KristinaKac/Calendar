@@ -10,6 +10,13 @@ export default class Calendar {
         this.startDay = moment().startOf('month').startOf('week');
         this.day = this.startDay.clone().subtract(1, 'day');
         this.current = moment();
+        this.currentDay = moment();
+
+        this.prevSelectDate;
+
+        this.onCellClick = this.onCellClick.bind(this);
+        this.onMouseover = this.onMouseover.bind(this);
+        this.onMouseout = this.onMouseout.bind(this);
 
     }
     static get markupCalendar() {
@@ -36,12 +43,85 @@ export default class Calendar {
         this.fillCells();
 
         this.cells.forEach(object => this.isWeekend(object));
+        this.cells.forEach(object => this.isInvalidDay(object));
 
         this.currentObjectDay = this.cells.find(object => this.isCurrentDay(object));
 
         if (this.currentObjectDay) {
             this.addClass(this.currentObjectDay, 'current_day');
         }
+
+        const dayElements = this.calendar.querySelectorAll('.calendar_cell');
+        dayElements.forEach(day => day.addEventListener('click', this.onCellClick));
+        dayElements.forEach(day => day.addEventListener('mouseover', this.onMouseover));
+        dayElements.forEach(day => day.addEventListener('mouseout', this.onMouseout));
+
+    }
+
+    onMouseover(e) {
+        e.preventDefault();
+
+        const dayHtmlElement = e.target;
+
+        const hoverObj = this.cells.find(object => object.id == dayHtmlElement.id);
+
+        const hoverDay = hoverObj.date;
+
+        this.addClass(hoverObj, 'hover_day');
+
+        if (this.prevSelectDate) {
+            this.cells.forEach(obj => {
+                if(obj.date.isAfter(this.prevSelectDate, 'day') && obj.date.isBefore(hoverDay, 'day')){
+                    this.addClass(obj, 'hover_day');
+                }
+            });
+        }
+    }
+    onMouseout() {
+        this.cells.forEach(obj => this.removeClass(obj, 'hover_day'));
+    }
+
+    onCellClick(e) {
+        e.preventDefault();
+
+        const dayHtmlElement = e.target;
+
+        const selectObj = this.cells.find(object => object.id == dayHtmlElement.id);
+        const selectDay = selectObj.date;
+
+        if (this.prevSelectDate) {
+            if (selectDay.isAfter(this.prevSelectDate, 'day') || selectDay.isSame(this.prevSelectDate, 'day')) {
+                this.addClass(selectObj, 'select_day');
+
+                this.cells.forEach(obj => {
+                    if (obj.date.isAfter(this.prevSelectDate, 'day') && obj.date.isBefore(selectDay, 'day')) {
+                        this.addClass(obj, 'mediate_day');
+                    }
+                });
+
+                console.log('ok, выбрана вторая дата');
+                this.prevSelectDate = undefined;
+            } else {
+                console.log('ошибка, нельзя выбрать дату раньше, чем туда');
+                this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
+                this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
+                this.prevSelectDate = undefined;
+            }
+        } else {
+            if (selectDay.isAfter(this.currentDay, 'day') || selectDay.isSame(this.currentDay, 'day')) {
+                this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
+                this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
+                this.addClass(selectObj, 'select_day');
+                console.log('ok, выбрана первая дата');
+                this.prevSelectDate = selectDay;
+            } else {
+                console.log('ошибка, нельзя выбрать дату раньше сегодняшнего дня');
+                this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
+                this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
+                this.prevSelectDate = undefined;
+            }
+        }
+
     }
 
     updateTotalDays() {
@@ -69,6 +149,11 @@ export default class Calendar {
             this.addClass(object, 'weekend');
         }
     }
+    isInvalidDay(object) {
+        if (object.date.isBefore(this.currentDay, 'day')) {
+            this.addClass(object, 'invalid_day');
+        }
+    }
 
     isCurrentDay(object) {
         return moment().isSame(object.date, 'day');
@@ -76,6 +161,10 @@ export default class Calendar {
     addClass(object, addClass) {
         const element = document.getElementById(object.id);
         element.classList.add(addClass);
+    }
+    removeClass(object, removeClass) {
+        const element = document.getElementById(object.id);
+        element.classList.remove(removeClass);
     }
     prevMonth() {
         this.current = this.current.clone().subtract(1, 'month');
@@ -121,4 +210,5 @@ export default class Calendar {
         wrapper.remove();
         this.cells = [];
     }
+
 }
