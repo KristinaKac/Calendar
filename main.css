@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Open Sans', sans-serif;
-    src: url('../fonts/OpenSans-Regular.ttf');
+    src: url(assets/OpenSans-Regular.ttf);
 }
 
 body {
