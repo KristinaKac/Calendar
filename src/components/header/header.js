@@ -13,9 +13,9 @@ export default class Header {
         <div class="header">
             <span class="header_title">January 2024</span>
             <div class="header_btns">
-                <button class="prev" type="button"> &lt; </button>
-                <button class="current" type="button">Today</button>
-                <button class="next" type="button"> &gt; </button>
+                <button class="btn prev" type="button"> &lt; </button>
+                <button class="btn current" type="button">Today</button>
+                <button class="btn next" type="button"> &gt; </button>
             </div>
         </div>
         `

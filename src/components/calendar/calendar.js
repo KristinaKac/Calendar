@@ -4,6 +4,7 @@ export default class Calendar {
     constructor(parentEl) {
         this.parentEl = parentEl;
         this.totalDays = [...Array(42)];
+        this.week = [...Array(7)];
         this.cells = [];
 
         moment.updateLocale('en', { week: { dow: 1 } });
@@ -22,6 +23,7 @@ export default class Calendar {
     static get markupCalendar() {
         return `
         <div class="calendar_wrapper">
+        <div class="calendar_header"></div>
             <div class="calendar">
             </div>
         </div>
@@ -34,11 +36,20 @@ export default class Calendar {
         div.innerText = day;
         return div;
     }
+    markupHeader(day) {
+        const div = document.createElement('div');
+        div.className = 'day_of_week';
+        div.innerText = day;
+        return div;
+    }
 
     bindToDOM() {
         const calendar = Calendar.markupCalendar;
         this.parentEl.insertAdjacentHTML('beforeend', calendar);
         this.calendar = this.parentEl.querySelector('.calendar');
+
+        const calendarHeader = this.parentEl.querySelector('.calendar_header');
+        this.week.forEach((day, i) => calendarHeader.appendChild(this.markupHeader(moment().day(i + 1).format('ddd'))));
 
         this.fillCells();
 
@@ -65,13 +76,15 @@ export default class Calendar {
 
         const hoverObj = this.cells.find(object => object.id == dayHtmlElement.id);
 
+        if (this.isInvalidDay(hoverObj)) return;
+
         const hoverDay = hoverObj.date;
 
         this.addClass(hoverObj, 'hover_day');
 
         if (this.prevSelectDate) {
             this.cells.forEach(obj => {
-                if(obj.date.isAfter(this.prevSelectDate, 'day') && obj.date.isBefore(hoverDay, 'day')){
+                if (obj.date.isAfter(this.prevSelectDate, 'day') && obj.date.isBefore(hoverDay, 'day')) {
                     this.addClass(obj, 'hover_day');
                 }
             });
@@ -98,11 +111,8 @@ export default class Calendar {
                         this.addClass(obj, 'mediate_day');
                     }
                 });
-
-                console.log('ok, выбрана вторая дата');
                 this.prevSelectDate = undefined;
             } else {
-                console.log('ошибка, нельзя выбрать дату раньше, чем туда');
                 this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
                 this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
                 this.prevSelectDate = undefined;
@@ -112,10 +122,8 @@ export default class Calendar {
                 this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
                 this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
                 this.addClass(selectObj, 'select_day');
-                console.log('ok, выбрана первая дата');
                 this.prevSelectDate = selectDay;
             } else {
-                console.log('ошибка, нельзя выбрать дату раньше сегодняшнего дня');
                 this.cells.forEach(obj => this.removeClass(obj, 'select_day'));
                 this.cells.forEach(obj => this.removeClass(obj, 'mediate_day'));
                 this.prevSelectDate = undefined;
@@ -152,6 +160,7 @@ export default class Calendar {
     isInvalidDay(object) {
         if (object.date.isBefore(this.currentDay, 'day')) {
             this.addClass(object, 'invalid_day');
+            return true;
         }
     }
 
